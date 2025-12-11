@@ -37,23 +37,34 @@ class MainWindow(QMainWindow):
 
         # Кнопки
         hl_buttons = QHBoxLayout()
+
         self.btn_add = QPushButton('Добавить')
         self.btn_edit = QPushButton('Редактировать')
         self.btn_delete = QPushButton('Удалить')
-        self.btn_view = QPushButton('Просмотреть')
+
+        self.btn_tags = QPushButton('Управление тегами')
+        self.btn_contests = QPushButton('Управление контестами')
+
+        self.btn_view = QPushButton('Просмотр')
         self.btn_export = QPushButton('Экспорт CSV')
 
-        # Скрываем админ-кнопки для обычного пользователя
+        # Права доступа
         if not self.is_admin:
             self.btn_add.setVisible(False)
             self.btn_edit.setVisible(False)
             self.btn_delete.setVisible(False)
+            self.btn_tags.setVisible(False)
+            self.btn_contests.setVisible(False)
 
+        # Добавляем кнопки в интерфейс
         hl_buttons.addWidget(self.btn_add)
         hl_buttons.addWidget(self.btn_edit)
         hl_buttons.addWidget(self.btn_delete)
+        hl_buttons.addWidget(self.btn_tags)
+        hl_buttons.addWidget(self.btn_contests)
         hl_buttons.addWidget(self.btn_view)
         hl_buttons.addWidget(self.btn_export)
+
         main_layout.addLayout(hl_buttons)
 
         central.setLayout(main_layout)
@@ -65,6 +76,8 @@ class MainWindow(QMainWindow):
         self.btn_add.clicked.connect(self.add_task)
         self.btn_edit.clicked.connect(self.edit_task)
         self.btn_delete.clicked.connect(self.delete_task)
+        self.btn_tags.clicked.connect(self.manage_tags)
+        self.btn_contests.clicked.connect(self.manage_contests)
         self.btn_view.clicked.connect(self.view_task)
         self.btn_export.clicked.connect(self.export_csv)
 
@@ -79,6 +92,26 @@ class MainWindow(QMainWindow):
         tasks = get_all_tasks()
         for t in tasks:
             self._append_task_row(t)
+
+    def manage_tags(self):
+        if not self.is_admin:
+            QMessageBox.warning(self, "Ошибка", "Нет прав для управления тегами")
+            return
+
+        from ui.tag_dialog import TagDialog
+        dlg = TagDialog(self)
+        dlg.exec()
+        self.load_tasks()
+
+    def manage_contests(self):
+        if not self.is_admin:
+            QMessageBox.warning(self, "Ошибка", "Нет прав для управления контестами")
+            return
+
+        from ui.contest_dialog import ContestDialog
+        dlg = ContestDialog(self)
+        dlg.exec()
+        self.load_tasks()
 
     def _append_task_row(self, t):
         row = self.table.rowCount()
